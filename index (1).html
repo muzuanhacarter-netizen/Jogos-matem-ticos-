@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧮 Jogo de Matemática</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #2E86AB 0%, #1B4965 100%);
+        padding: 20px;
+    }
+
+    .container {
+        background: #2E86AB;
+        border-radius: 25px;
+        padding: 30px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        text-align: center;
+    }
+
+    h1 {
+        color: white;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .subtitulo {
+        color: #E0F2FE;
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+
+    /* Placar */
+    .placar {
+        display: flex;
+        justify-content: space-around;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+
+    .placar-item {
+        color: white;
+        font-size: 0.95rem;
+        font-weight: bold;
+    }
+
+    .placar-item span {
+        display: block;
+        font-size: 1.3rem;
+        margin-top: 3px;
+    }
+
+    .pontos span { color: #FFD700; }
+    .acertos span { color: #4CAF50; }
+    .erros span { color: #FF6B6B; }
+
+    /* Pergunta */
+    .pergunta {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 20px;
+        font-size: 2.2rem;
+        font-weight: bold;
+        color: #2E86AB;
+        box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.1);
+        min-height: 90px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Opções */
+    .opcoes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .opcao {
+        background: white;
+        color: #2E86AB;
+        border: none;
+        border-radius: 15px;
+        padding: 20px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 5px 0 #1B4965;
+    }
+
+    .opcao:hover:not(:disabled) {
+        transform: translateY(-2px);
+        background: #E0F2FE;
+    }
+
+    .opcao:active:not(:disabled) {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #1B4965;
+    }
+
+    .opcao.correta {
+        background: #4CAF50 !important;
+        color: white !important;
+        box-shadow: 0 5px 0 #2E7D32;
+    }
+
+    .opcao.errada {
+        background: #F44336 !important;
+        color: white !important;
+        box-shadow: 0 5px 0 #B71C1C;
+    }
+
+    .opcao:disabled {
+        cursor: not-allowed;
+    }
+
+    /* Feedback */
+    .feedback {
+        font-size: 1.1rem;
+        font-weight: bold;
+        min-height: 28px;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .feedback.sucesso { color: #90EE90; }
+    .feedback.erro { color: #FFB6B6; }
+
+    /* Botões de nível */
+    .btn-nivel {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 18px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: white;
+        background: #F18F01;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 5px 0 #B36A00;
+    }
+
+    .btn-nivel:hover {
+        transform: translateY(-2px);
+        background: #FFA726;
+    }
+
+    .btn-nivel:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #B36A00;
+    }
+
+    /* Botão voltar */
+    .btn-voltar {
+        background: #C73E1D;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 0 #8B2A13;
+        margin-top: 5px;
+    }
+
+    .btn-voltar:hover {
+        transform: translateY(-2px);
+        background: #E0492A;
+    }
+
+    .btn-voltar:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #8B2A13;
+    }
+
+    /* Telas */
+    .tela {
+        display: none;
+    }
+
+    .tela.ativa {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Animação de acerto */
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .pergunta.acerto {
+        animation: pulse 0.5s ease;
+        background: #E8F5E9;
+    }
+
+    /* Responsivo */
+    @media (max-width: 400px) {
+        h1 { font-size: 1.4rem; }
+        .pergunta { font-size: 1.8rem; }
+        .opcao { font-size: 1.2rem; padding: 16px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🧮 Jogo de Matemática</h1>
+
+    <!-- ===== TELA INICIAL ===== -->
+    <div id="tela-inicio" class="tela ativa">
+        <p class="subtitulo">Teste suas habilidades matemáticas!<br>Escolha o nível:</p>
+        <button class="btn-nivel" onclick="iniciarJogo(1)">🐣 Fácil (1 a 10)</button>
+        <button class="btn-nivel" onclick="iniciarJogo(2)">🐰 Médio (1 a 50)</button>
+        <button class="btn-nivel" onclick="iniciarJogo(3)">🦁 Difícil (1 a 100)</button>
+    </div>
+
+    <!-- ===== TELA DO JOGO ===== -->
+    <div id="tela-jogo" class="tela">
+        <div class="placar">
+            <div class="placar-item pontos">⭐ Pontos<span id="pontos">0</span></div>
+            <div class="placar-item acertos">✅ Acertos<span id="acertos">0</span></div>
+            <div class="placar-item erros">❌ Erros<span id="erros">0</span></div>
+        </div>
+
+        <div class="pergunta" id="pergunta">3 + 4 = ?</div>
+
+        <div class="opcoes" id="opcoes">
+            <button class="opcao" onclick="verificarResposta(0)">-</button>
+            <button class="opcao" onclick="verificarResposta(1)">-</button>
+            <button class="opcao" onclick="verificarResposta(2)">-</button>
+            <button class="opcao" onclick="verificarResposta(3)">-</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <button class="btn-voltar" onclick="voltarMenu()">🏠 Voltar ao Menu</button>
+    </div>
+</div>
+
+<script>
+    // ===== ESTADO DO JOGO =====
+    let estado = {
+        pontos: 0,
+        acertos: 0,
+        erros: 0,
+        nivel: 1,
+        respostaCorreta: 0,
+        opcoes: [],
+        respondendo: false
+    };
+
+    // ===== ELEMENTOS =====
+    const el = {
+        telaInicio: document.getElementById('tela-inicio'),
+        telaJogo: document.getElementById('tela-jogo'),
+        pontos: document.getElementById('pontos'),
+        acertos: document.getElementById('acertos'),
+        erros: document.getElementById('erros'),
+        pergunta: document.getElementById('pergunta'),
+        opcoes: document.querySelectorAll('.opcao'),
+        feedback: document.getElementById('feedback')
+    };
+
+    // ===== INICIAR JOGO =====
+    function iniciarJogo(nivel) {
+        estado = {
+            pontos: 0,
+            acertos: 0,
+            erros: 0,
+            nivel: nivel,
+            respostaCorreta: 0,
+            opcoes: [],
+            respondendo: false
+        };
+
+        el.telaInicio.classList.remove('ativa');
+        el.telaJogo.classList.add('ativa');
+
+        atualizarPlacar();
+        novaPergunta();
+    }
+
+    // ===== VOLTAR AO MENU =====
+    function voltarMenu() {
+        el.telaJogo.classList.remove('ativa');
+        el.telaInicio.classList.add('ativa');
+    }
+
+    // ===== GERAR PERGUNTA =====
+    function gerarPergunta() {
+        const limites = { 1: 10, 2: 50, 3: 100 };
+        const limite = limites[estado.nivel];
+        const operacoes = ['+', '-', '×'];
+        const op = operacoes[Math.floor(Math.random() * operacoes.length)];
+
+        let a, b, resultado;
+
+        if (op === '+') {
+            a = Math.floor(Math.random() * limite) + 1;
+            b = Math.floor(Math.random() * limite) + 1;
+            resultado = a + b;
+        } else if (op === '-') {
+            a = Math.floor(Math.random() * limite) + 1;
+            b = Math.floor(Math.random() * a) + 1; // Evita negativos
+            resultado = a - b;
+        } else {
+            const maxMult = Math.min(10, limite);
+            a = Math.floor(Math.random() * maxMult) + 1;
+            b = Math.floor(Math.random() * maxMult) + 1;
+            resultado = a * b;
+        }
+
+        return { texto: `${a} ${op} ${b}`, resultado };
+    }
+
+    // ===== NOVA PERGUNTA =====
+    function novaPergunta() {
+        estado.respondendo = false;
+        el.feedback.textContent = '';
+        el.feedback.className = 'feedback';
+        el.pergunta.classList.remove('acerto');
+
+        const { texto, resultado } = gerarPergunta();
+        estado.respostaCorreta = resultado;
+        el.pergunta.textContent = `${texto} = ?`;
+
+        // Gera 4 opções (1 correta + 3 erradas)
+        const opcoes = [resultado];
+        while (opcoes.length < 4) {
+            const variacao = Math.floor(Math.random() * 21) - 10;
+            const errada = resultado + variacao;
+            if (errada !== resultado && errada >= 0 && !opcoes.includes(errada)) {
+                opcoes.push(errada);
+            }
+        }
+
+        // Embaralha
+        opcoes.sort(() => Math.random() - 0.5);
+        estado.opcoes = opcoes;
+
+        // Atualiza botões
+        el.opcoes.forEach((btn, i) => {
+            btn.textContent = opcoes[i];
+            btn.className = 'opcao';
+            btn.disabled = false;
+        });
+    }
+
+    // ===== VERIFICAR RESPOSTA =====
+    function verificarResposta(indice) {
+        if (estado.respondendo) return;
+        estado.respondendo = true;
+
+        const escolhida = estado.opcoes[indice];
+
+        // Desabilita todos
+        el.opcoes.forEach(b => b.disabled = true);
+
+        if (escolhida === estado.respostaCorreta) {
+            // ===== ACERTOU =====
+            el.opcoes[indice].classList.add('correta');
+            el.pergunta.classList.add('acerto');
+            estado.acertos++;
+            estado.pontos += 10 * estado.nivel;
+            el.feedback.textContent = '🎉 Acertou! Parabéns!';
+            el.feedback.className = 'feedback sucesso';
+            atualizarPlacar();
+
+            setTimeout(novaPergunta, 1200);
+        } else {
+            // ===== ERROU =====
+            el.opcoes[indice].classList.add('errada');
+            estado.erros++;
+            el.feedback.textContent = `❌ Ops! A resposta era ${estado.respostaCorreta}`;
+            el.feedback.className = 'feedback erro';
+            atualizarPlacar();
+
+            // Mostra a correta
+            el.opcoes.forEach((btn, i) => {
+                if (estado.opcoes[i] === estado.respostaCorreta) {
+                    btn.classList.add('correta');
+                }
+            });
+
+            setTimeout(novaPergunta, 2000);
+        }
+    }
+
+    // ===== ATUALIZAR PLACAR =====
+    function atualizarPlacar() {
+        el.pontos.textContent = estado.pontos;
+        el.acertos.textContent = estado.acertos;
+        el.erros.textContent = estado.erros;
+    }
+
+    // ===== SUPORTE A TECLADO =====
+    document.addEventListener('keydown', (e) => {
+        if (!el.telaJogo.classList.contains('ativa')) return;
+        if (estado.respondendo) return;
+
+        const teclas = ['1', '2', '3', '4'];
+        const idx = teclas.indexOf(e.key);
+        if (idx !== -1) {
+            verificarResposta(idx);
+        }
+    });
+</script>
+
+</body>
+</html>
